@@ -202,6 +202,24 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
                 .add_modifier(Modifier::BOLD)
                 .bg(bg),
         ),
+        Span::styled(" s/S ", key),
+        Span::styled("sort ", lbl),
+        Span::styled(
+            format!("{} ", app.process_sort_key_name()),
+            Style::default()
+                .fg(app.theme.selected_fg())
+                .add_modifier(Modifier::BOLD)
+                .bg(bg),
+        ),
+        Span::styled(" d ", key),
+        Span::styled("dir ", lbl),
+        Span::styled(
+            format!("{} ", app.process_sort_dir_name()),
+            Style::default()
+                .fg(app.theme.selected_fg())
+                .add_modifier(Modifier::BOLD)
+                .bg(bg),
+        ),
     ];
     f.render_widget(
         Paragraph::new(Line::from(spans)).style(Style::default().bg(bg)),

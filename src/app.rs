@@ -244,6 +244,20 @@ impl App {
         self.save_state()
     }
 
+    /// Footer label for the current process-table sort column.
+    pub fn process_sort_key_name(&self) -> &'static str {
+        sort_key_name(self.process_sort_key)
+    }
+
+    /// Footer label for the current process-table sort direction.
+    pub fn process_sort_dir_name(&self) -> &'static str {
+        if self.process_sort_desc {
+            "desc"
+        } else {
+            "asc"
+        }
+    }
+
     pub fn active_apps(&self) -> impl Iterator<Item = &AppAmdgpuTop> {
         self.gpus.iter().filter_map(|gpu| gpu.app.as_ref())
     }
@@ -357,6 +371,16 @@ impl App {
             Section::Npu => self.collapse.npu,
             Section::Processes => self.collapse.processes,
         }
+    }
+}
+
+/// The footer label for a process-table sort key: "native" for the default
+/// device order (key 0) or an out-of-range key, otherwise the column name.
+fn sort_key_name(idx: usize) -> &'static str {
+    match idx {
+        0 => "native",
+        idx if (1..PROCESS_COLUMNS.len()).contains(&idx) => PROCESS_COLUMNS[idx],
+        _ => "native",
     }
 }
 
@@ -656,7 +680,7 @@ mod tests {
 
     use super::{
         NpuInfo, activate_if_awake, memory_info, pair_by_key, parse_process_rss_kb,
-        same_npu_device, send_process_targets_after_activation,
+        same_npu_device, send_process_targets_after_activation, sort_key_name,
     };
 
     #[test]
@@ -803,6 +827,15 @@ mod tests {
     fn memory_info_handles_zero_and_overcommitted_pools() {
         assert_eq!(memory_info(false, (10, 0), (0, 0)).percent, 0.0);
         assert_eq!(memory_info(false, (200, 100), (0, 0)).percent, 100.0);
+    }
+
+    #[test]
+    fn sort_key_name_labels_native_order_and_columns() {
+        assert_eq!(sort_key_name(0), "native");
+        assert_eq!(sort_key_name(1), "PID");
+        assert_eq!(sort_key_name(4), "VRAM");
+        assert_eq!(sort_key_name(9), "CPU%");
+        assert_eq!(sort_key_name(10), "native");
     }
 
     #[test]
